@@ -1,1 +1,1 @@
-# photo-manager
+# Photo manager
