@@ -1,9 +1,10 @@
 from tempfile import NamedTemporaryFile
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 
 import scipy as scipy
 from django.core.files import File
 from django.db import models
+from django.utils.text import slugify
 
 
 class Photo(models.Model):
@@ -37,9 +38,13 @@ class Photo(models.Model):
     def save(self, *args, **kwargs):
         if self.image_url and not self.image_file:
             img_temp = NamedTemporaryFile(delete=True)
-            img_temp.write(urlopen(self.image_url).read())
+            req = Request(
+                url=self.image_url,
+                headers={'User-Agent': 'XYZ/3.0'}
+            )
+            img_temp.write(urlopen(req, timeout=10).read())
             img_temp.flush()
-            self.image_file.save(f"image_{self.pk}", File(img_temp))
+            self.image_file.save(f"{slugify(self.title)}.png", File(img_temp))
         return super(Photo, self).save(*args, **kwargs)
 
     def __str__(self):
